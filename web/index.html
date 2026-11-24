@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>本地字体工坊 · 把手写字迹变成 TTF 字体</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="topbar">
+  <a class="brand" href="/">
+    <span class="seal">字</span>
+    <span class="brand-text">
+      <strong>本地字体工坊</strong>
+      <small>HANDWRITING FONT STUDIO</small>
+    </span>
+  </a>
+  <div class="topbar-right">
+    <span class="offline"><i></i>完全离线 · 数据不出本机</span>
+    <a href="#tips" class="ghost-link">使用说明</a>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <p class="eyebrow">写一遍，用一辈子</p>
+    <h1>把你的字迹，<br><em>变成一套字体</em>。</h1>
+    <p class="lede">打印一张 A4 模板，把常用字写进格子里，拍照上传。几分钟后，你就拥有了一套可以安装、可以打字的 TTF 字体。</p>
+    <div class="hero-stats">
+      <span><b>3500</b> 常用字</span>
+      <span><b>A4</b> 打印模板</span>
+      <span><b>TTF</b> 通用格式</span>
+      <span><b>0</b> 云端上传</span>
+    </div>
+  </section>
+
+  <section class="step" id="step-template">
+    <div class="step-head">
+      <span class="step-no">01</span>
+      <div>
+        <h2>生成手写模板</h2>
+        <p>选好字集和格子数量，打印出来逐格书写。</p>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <label class="field-label">字符集</label>
+        <div class="chips" id="preset-chips"></div>
+        <div id="custom-wrap" class="custom-wrap hidden">
+          <textarea id="custom-text" rows="4" placeholder="粘贴想写的文字，例如：永和九年，岁在癸丑……&#10;重复的字会自动去重。"></textarea>
+          <p class="hint"><span id="custom-count">0</span> 个不重复字符</p>
+        </div>
+
+        <div class="field-row">
+          <label class="field-label">每页版式
+            <span class="inline-inputs">
+              <input id="cols" type="number" min="4" max="12" value="9" aria-label="列数"> 列 ×
+              <input id="rows" type="number" min="6" max="16" value="12" aria-label="行数"> 行
+            </span>
+          </label>
+        </div>
+        <p class="hint" id="estimate">约 3500 字 · 33 页</p>
+
+        <label class="field-label" for="family">字体名称</label>
+        <input id="family" type="text" maxlength="40" value="我的手写体" placeholder="例如：小林手写体">
+
+        <button class="btn primary" id="btn-template">
+          <span>生成 A4 模板</span>
+          <span class="btn-arrow">→</span>
+        </button>
+        <p class="hint">生成后会得到一份 PDF，打印时请选择「实际大小 / 100%」。</p>
+      </div>
+
+      <div class="panel soft" id="template-result">
+        <div class="empty-state">
+          <div class="mini-template" aria-hidden="true">
+            <span class="corner tl"></span><span class="corner tr"></span>
+            <span class="corner bl"></span><span class="corner br"></span>
+            <div class="mini-grid">
+              <span>永</span><span>和</span><span>九</span><span>年</span>
+              <span>岁</span><span>在</span><span>癸</span><span>丑</span>
+            </div>
+          </div>
+          <h3>模板里有什么</h3>
+          <ul class="ticks">
+            <li>四角黑块，拍照后自动校正透视</li>
+            <li>每格上方有浅灰示例字，照着写即可</li>
+            <li>格线只作参考，写字时不要碰线</li>
+            <li>每页 108 格，一页大约写 20 分钟</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="step" id="step-build">
+    <div class="step-head">
+      <span class="step-no">02</span>
+      <div>
+        <h2>拍照并合成字体</h2>
+        <p>按页序上传照片，工具会自动取字、矢量化并打包成 TTF。</p>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <label class="field-label" for="project-select">选择模板项目</label>
+        <select id="project-select">
+          <option value="">正在读取…</option>
+        </select>
+        <div class="project-meta" id="project-meta"></div>
+
+        <label class="field-label">上传照片</label>
+        <div class="dropzone" id="dropzone">
+          <input id="file-input" type="file" accept="image/*" multiple hidden>
+          <div class="drop-icon">＋</div>
+          <p><b>点击选择</b>或把照片拖到这里</p>
+          <p class="hint">JPG / PNG · 按文件名顺序对应页序 · 可一次上传全部页</p>
+        </div>
+        <div class="file-list" id="file-list"></div>
+
+        <label class="check">
+          <input type="checkbox" id="normalize" checked>
+          <span>自动统一字的大小（推荐）</span>
+        </label>
+
+        <button class="btn primary" id="btn-build" disabled>
+          <span>开始合成字体</span>
+          <span class="btn-arrow">→</span>
+        </button>
+        <p class="hint" id="build-hint">请先选择模板并上传照片。</p>
+      </div>
+
+      <div class="panel soft" id="build-result">
+        <div class="empty-state" id="build-empty">
+          <div class="photo-guide" aria-hidden="true">
+            <div class="phone"></div>
+            <div class="shot-frame"><span>字</span></div>
+          </div>
+          <h3>拍摄建议</h3>
+          <ul class="ticks">
+            <li>正面拍摄，镜头与纸面尽量平行</li>
+            <li>光线均匀，避免阴影和反光</li>
+            <li>四个角上的黑块必须完整入镜</li>
+            <li>不要裁边，不要拍到太多桌面</li>
+          </ul>
+        </div>
+        <div class="job hidden" id="job-panel">
+          <div class="job-head">
+            <span id="job-status">准备中…</span>
+            <span id="job-percent">0%</span>
+          </div>
+          <div class="progress"><div class="progress-bar" id="progress-bar"></div></div>
+          <pre class="job-log" id="job-log"></pre>
+        </div>
+        <div class="result hidden" id="result-panel">
+          <div class="result-head">
+            <div>
+              <p class="eyebrow small">字体已生成</p>
+              <h3 id="result-name">我的手写体</h3>
+            </div>
+            <a class="btn primary small" id="download-font" download>下载 TTF</a>
+          </div>
+          <div class="font-preview" id="font-preview" contenteditable="true" spellcheck="false">永和九年，岁在癸丑。暮春之初，会于会稽山阴之兰亭。</div>
+          <div class="preview-controls">
+            <label>字号 <input id="font-size" type="range" min="24" max="96" value="48"></label>
+            <span id="font-size-val">48 px</span>
+            <button class="chip-btn" data-sample="永和九年，岁在癸丑。暮春之初，会于会稽山阴之兰亭。">兰亭集序</button>
+            <button class="chip-btn" data-sample="天地玄黄，宇宙洪荒。日月盈昃，辰宿列张。">千字文</button>
+            <button class="chip-btn" data-sample="你好，这是我的手写字体。">日常用语</button>
+          </div>
+          <p class="result-meta" id="result-meta"></p>
+          <details class="missing" id="missing-box">
+            <summary>缺字与提示</summary>
+            <p id="missing-text"></p>
+          </details>
+          <div class="result-links">
+            <a id="link-preview" target="_blank">查看样张 PNG</a>
+            <a id="link-specimen" target="_blank">打开 HTML 样张</a>
+            <a id="link-pdf" target="_blank">重新下载模板</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="step" id="step-install">
+    <div class="step-head">
+      <span class="step-no">03</span>
+      <div>
+        <h2>安装并使用</h2>
+        <p>下载 TTF 后，像普通字体一样安装即可在 Word、PS、剪映等软件里使用。</p>
+      </div>
+    </div>
+    <div class="install-grid">
+      <div class="panel mini">
+        <h3>Windows</h3>
+        <p>右键 TTF →「安装」；或双击打开后点「安装」。重启正在使用的软件。</p>
+      </div>
+      <div class="panel mini">
+        <h3>macOS</h3>
+        <p>双击 TTF → 字体册 →「安装字体」。在 Pages / Word 的字体列表里搜索字体名。</p>
+      </div>
+      <div class="panel mini">
+        <h3>手机 / 其他</h3>
+        <p>Android 可用字体管家类工具导入；iOS 需通过描述文件或支持自定义字体的 App。</p>
+      </div>
+      <div class="panel mini">
+        <h3>版权</h3>
+        <p>字形来自你自己的书写，字体版权归你所有。本工具不收集、不上传任何照片。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="tips" id="tips">
+    <h2>写得好，字体才好</h2>
+    <div class="tips-grid">
+      <article>
+        <span class="tip-no">01</span>
+        <h3>用黑色笔，一笔一画</h3>
+        <p>0.5mm 中性笔或钢笔均可。字写在格子中间，不要碰到格线，不要连笔涂改。写错的字留空，合成后单独补写即可。</p>
+      </article>
+      <article>
+        <span class="tip-no">02</span>
+        <h3>拍照比扫描更简单</h3>
+        <p>把纸放在平整桌面，手机正对纸面。让四角黑块完整入镜，留一点白边。光线不足时用室内顶灯，避免手机影子落在纸上。</p>
+      </article>
+      <article>
+        <span class="tip-no">03</span>
+        <h3>先试 50 字，再写 3500 字</h3>
+        <p>建议先用「自定义文字」写一小段，合成一次看看效果。满意后再打印完整字集，避免白写。字体里的字越全，日常打字越少遇到缺字。</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="faq">
+    <h2>常见问题</h2>
+    <details>
+      <summary>一定要写满 3500 字吗？</summary>
+      <p>不一定。只写你常用的字也可以，缺字时系统会自动用其他字体补上。字体里包含的字越多，排版时越统一。</p>
+    </details>
+    <details>
+      <summary>照片拍歪了、有阴影，会影响吗？</summary>
+      <p>四角黑块就是用来做透视校正的，轻微倾斜没关系。严重阴影会让笔画变粗或断裂，建议重拍。合成结果页会显示缺字和异常提示。</p>
+    </details>
+    <details>
+      <summary>为什么生成的字体有些字大小不一？</summary>
+      <p>这是手写的自然差异。勾选「自动统一字的大小」会按每个字的包围盒缩放；取消勾选则完全保留你在格子里的原始大小和位置。</p>
+    </details>
+    <details>
+      <summary>字体可以商用吗？</summary>
+      <p>字形是你自己写的，版权归你。若字体里包含他人字库的临摹字形，请自行确认授权。本工具只做图像处理和字体打包，不提供任何字库。</p>
+    </details>
+  </section>
+</main>
+
+<footer class="footer">
+  <span>本地字体工坊 · 完全离线运行</span>
+  <span>照片只保存在本机 <code>projects/</code> 目录</span>
+</footer>
+
+<div class="toast" id="toast" role="status"></div>
+<script src="/static/app.js"></script>
+</body>
+</html>
